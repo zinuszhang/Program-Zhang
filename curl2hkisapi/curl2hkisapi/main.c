@@ -36,7 +36,7 @@ int main(void)
 
 		if (res_code != CURLE_OK)
 		{
-			SZY_LOG("请求认证证书 Fail - curl 错误码 %d", res_code);
+			SZY_LOG("请求认证证书 Fail - curl 错误码 %d 错误信息 %s", res_code, curl_easy_strerror(res_code));
 		} 
 		else
 		{
