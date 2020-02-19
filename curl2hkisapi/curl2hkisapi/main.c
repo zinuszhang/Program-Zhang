@@ -16,27 +16,36 @@
 /*                                                                      */
 /************************************************************************/
 
-static uint8_t g_http_get_body[4096];
-static size_t g_http_get_body_size;
-static size_t g_http_get_body_len;
+struct buff
+{
+	size_t size;
+	size_t len;
+	uint8_t data[4096];
+};
+
+/************************************************************************/
+/*                                                                      */
+/************************************************************************/
+
+static struct buff g_http_get_buff;
 
 static size_t http_get_write_body(void* ptr, size_t size, size_t nmemb, void* stream)
 {
-	uint8_t* body = stream;
+	struct buff* body = stream;
 
-	if (g_http_get_body_size - g_http_get_body_len >= size * nmemb)
+	if (body->size - body->len >= size * nmemb)
 	{
-		memcpy(&g_http_get_body[g_http_get_body_len], ptr, size * nmemb);
-		g_http_get_body_len += size * nmemb;
+		memcpy(&body->data[body->len], ptr, size * nmemb);
+		body->len += size * nmemb;
 
 		return size * nmemb;
 	}
 	else
 	{
-		memcpy(&g_http_get_body[g_http_get_body_len], ptr, g_http_get_body_size - g_http_get_body_len);
-		g_http_get_body_len = g_http_get_body_size;
+		memcpy(&body->data[body->len], ptr, body->size - body->len);
+		body->len = body->size;
 
-		return g_http_get_body_size - g_http_get_body_len;
+		return body->size - body->len;
 	}
 }
 
@@ -67,11 +76,9 @@ int main(void)
 
 		res_code = curl_easy_setopt(http_get, CURLOPT_URL, "http://172.16.51.9/ISAPI/Security/userCheck");
 
-		memset(g_http_get_body, 0, sizeof(g_http_get_body));
-		g_http_get_body_size = sizeof(g_http_get_body);
-		g_http_get_body_len = 0;
+		memset(&g_http_get_buff, 0, sizeof(g_http_get_buff));
 		res_code = curl_easy_setopt(http_get, CURLOPT_WRITEFUNCTION, http_get_write_body);
-		res_code = curl_easy_setopt(http_get, CURLOPT_WRITEDATA, g_http_get_body);
+		res_code = curl_easy_setopt(http_get, CURLOPT_WRITEDATA, &g_http_get_buff);
 
 		//////////////////////////////////////////////////////////////////////////
 
