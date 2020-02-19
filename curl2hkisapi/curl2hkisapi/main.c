@@ -115,7 +115,7 @@ int main(void)
 
 		//////////////////////////////////////////////////////////////////////////
 
-		//	2.生成一个消息摘要 & 验证
+		//	2.获取认证需要的 realm & nonce 值
 
 		char realm[32];
 		char nonce[64];
@@ -128,7 +128,16 @@ int main(void)
 			memcpy(&realm[0], p_realm_s + 7, p_realm_e - p_realm_s - 7);
 		}
 
+		memset(&nonce[0], 0, sizeof(nonce));
+		const char* p_nonce_s = strstr(g_http_get_header.data, "nonce=\"");
+		if (p_nonce_s != NULL)
+		{
+			const char* p_nonce_e = strstr(p_nonce_s + 7, "\"");
+			memcpy(&nonce[0], p_nonce_s + 7, p_nonce_e - p_nonce_s - 7);
+		}
+
 		SZY_LOG("realm = %s", realm);
+		SZY_LOG("nonce = %s", nonce);
 
 		//////////////////////////////////////////////////////////////////////////
 
