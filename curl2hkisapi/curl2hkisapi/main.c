@@ -18,7 +18,6 @@
 
 struct buff
 {
-	size_t size;
 	size_t len;
 	uint8_t data[4096];
 };
@@ -33,7 +32,7 @@ static size_t http_get_write_body(void* ptr, size_t size, size_t nmemb, void* st
 {
 	struct buff* body = stream;
 
-	if (body->size - body->len >= size * nmemb)
+	if (sizeof(body->data) - body->len >= size * nmemb)
 	{
 		memcpy(&body->data[body->len], ptr, size * nmemb);
 		body->len += size * nmemb;
@@ -42,10 +41,10 @@ static size_t http_get_write_body(void* ptr, size_t size, size_t nmemb, void* st
 	}
 	else
 	{
-		memcpy(&body->data[body->len], ptr, body->size - body->len);
-		body->len = body->size;
+		memcpy(&body->data[body->len], ptr, sizeof(body->data) - body->len);
+		body->len = sizeof(body->data);
 
-		return body->size - body->len;
+		return sizeof(body->data) - body->len;
 	}
 }
 
