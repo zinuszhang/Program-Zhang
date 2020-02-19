@@ -6,6 +6,8 @@
 
 #include <curl/curl.h>
 
+#include "openssl_md5.h"
+
 /************************************************************************/
 /*                                                                      */
 /************************************************************************/
@@ -52,6 +54,10 @@ static size_t curl_buff_write(void* ptr, size_t size, size_t nmemb, void* stream
 		return sizeof(buff->data) - buff->len;
 	}
 }
+
+//////////////////////////////////////////////////////////////////////////
+
+
 
 /************************************************************************/
 /*                                                                      */
@@ -138,6 +144,34 @@ int main(void)
 
 		SZY_LOG("realm = %s", realm);
 		SZY_LOG("nonce = %s", nonce);
+
+		//////////////////////////////////////////////////////////////////////////
+
+		//	3.计算 摘要认证 response 值
+
+		char a1[64], md5_a1[64];
+		char a2[64], md5_a2[64];
+		char three_tuple[128], response[64];
+
+		memset(a1, 0, sizeof(a1));
+		sprintf(a1, "%s:%s:%s", "admin", realm, "Clp123456");
+		memset(md5_a1, 0, sizeof(md5_a1));
+		hk_isapi_get_md5_hash(a1, strlen(a1), md5_a1);
+
+		memset(a2, 0, sizeof(a2));
+		sprintf(a2, "%s:%s", "GET", "/ISAPI/Security/userCheck");
+		memset(md5_a2, 0, sizeof(md5_a2));
+		hk_isapi_get_md5_hash(a2, strlen(a2), md5_a2);
+
+		memset(three_tuple, 0, sizeof(three_tuple));
+		sprintf(three_tuple, "%s:%s:%s", md5_a1, nonce, md5_a2);
+		memset(response, 0, sizeof(response));
+		hk_isapi_get_md5_hash(three_tuple, strlen(three_tuple), response);
+
+		SZY_LOG("a1 = %s ===> md5(a1) = %s", a1, md5_a1);
+		SZY_LOG("a2 = %s ===> md5(a2) = %s", a2, md5_a2);
+		SZY_LOG("<md5(a1):nonce:md5(a2)> = %s", three_tuple);
+		SZY_LOG("response = %s", response);
 
 		//////////////////////////////////////////////////////////////////////////
 
