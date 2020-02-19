@@ -259,11 +259,9 @@ int main(void)
 
 #elif 1
 
-int main(void)
+static void hk_isapi_access(const char* url)
 {
-	curl_global_init(CURL_GLOBAL_ALL);
-
-	//////////////////////////////////////////////////////////////////////////
+	SZY_LOG("HK ISAPI access %s", url);
 
 	CURL* http_get = curl_easy_init();
 
@@ -271,7 +269,7 @@ int main(void)
 	{
 		CURLcode res_code = CURLE_OK;
 
-		res_code = curl_easy_setopt(http_get, CURLOPT_URL, "http://172.16.51.9/ISAPI/Security/userCheck");
+		res_code = curl_easy_setopt(http_get, CURLOPT_URL, url);
 		res_code = curl_easy_setopt(http_get, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
 		res_code = curl_easy_setopt(http_get, CURLOPT_USERNAME, "admin");
 		res_code = curl_easy_setopt(http_get, CURLOPT_PASSWORD, "Clp123456");
@@ -289,11 +287,11 @@ int main(void)
 
 		if (res_code != CURLE_OK)
 		{
-			SZY_LOG("请求认证证书 Fail - curl 错误码 %d 错误信息 %s", res_code, curl_easy_strerror(res_code));
+			SZY_LOG("CURL 2 HK ISAPI Fail - curl 错误码 %d 错误信息 %s", res_code, curl_easy_strerror(res_code));
 		}
 		else
 		{
-			SZY_LOG("请求认证证书 Succ");
+			SZY_LOG("CURL 2 HK ISAPI Succ");
 
 			SZY_LOG("========================================");
 			SZY_LOG("header =>");
@@ -305,6 +303,25 @@ int main(void)
 		}
 
 		curl_easy_cleanup(http_get);
+	}
+}
+
+int main(void)
+{
+	curl_global_init(CURL_GLOBAL_ALL);
+
+	const char* hkurl[] = {
+		"http://172.16.51.9/ISAPI/Thermal/channels/1/faceThermometry/capabilitie",
+		"http://172.16.51.9/ISAPI/Thermal/channels/1/faceThermometry",
+		"http://172.16.51.9/ISAPI/Thermal/channels/1/faceThermometry/regions",
+		"http://172.16.51.9/ISAPI/Thermal/channels/1/faceThermometry/regions/1",
+		"http://172.16.51.9/ISAPI/Thermal/channels/1/faceThermometry/regions/1/detectionInfo",
+		"http://172.16.51.9/ISAPI/Security/userCheck",
+	};
+
+	for (int i = 0; i < 5; i++)
+	{
+		hk_isapi_access(hkurl[i]);
 	}
 
 	curl_global_cleanup();
