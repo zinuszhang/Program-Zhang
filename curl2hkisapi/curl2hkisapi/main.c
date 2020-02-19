@@ -39,6 +39,17 @@ static size_t curl_buff_write(void* ptr, size_t size, size_t nmemb, void* stream
 {
 	struct buff* buff = stream;
 
+#if 1
+	SZY_LOG("================================ recv data len %d =============================", size * nmemb);
+
+	const char* p = ptr;
+
+	for (size_t i = 0; i < size * nmemb; i++)
+	{
+		putchar(p[i]);
+	}
+#endif
+
 	if (sizeof(buff->data) - buff->len >= size * nmemb)
 	{
 		memcpy(&buff->data[buff->len], ptr, size * nmemb);
@@ -311,7 +322,13 @@ int main(void)
 	curl_global_init(CURL_GLOBAL_ALL);
 
 	const char* hkurl[] = {
-		"http://172.16.51.9/ISAPI/Thermal/channels/1/faceThermometry/capabilitie",
+		"http://172.16.51.9/ISAPI/Event/notification/alertStream",
+		"http://172.16.51.9/ISAPI/Thermal/channels/0/thermIntell/capabilities",
+		"http://172.16.51.9/ISAPI/Event/triggers/IO-1",
+		"http://172.16.51.9/ISAPI/Event/capabilities",
+		"http://172.16.51.9/ISAPI/Thermal/channels/2/faceThermometry/capabilities",
+		"http://172.16.51.9/ISAPI/Thermal/channels/0/thermIntell/capabilities",
+		"http://172.16.51.9/ISAPI/Thermal/capabilities",
 		"http://172.16.51.9/ISAPI/Thermal/channels/1/faceThermometry",
 		"http://172.16.51.9/ISAPI/Thermal/channels/1/faceThermometry/regions",
 		"http://172.16.51.9/ISAPI/Thermal/channels/1/faceThermometry/regions/1",
@@ -319,7 +336,7 @@ int main(void)
 		"http://172.16.51.9/ISAPI/Security/userCheck",
 	};
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 1; i++)
 	{
 		hk_isapi_access(hkurl[i]);
 	}
