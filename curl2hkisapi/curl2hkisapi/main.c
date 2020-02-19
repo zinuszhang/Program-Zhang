@@ -70,13 +70,17 @@ int main(void)
 
 	//////////////////////////////////////////////////////////////////////////
 
-	//	1.客户端发出一个没有认证证书的请求
+	//	摘要认证
 
 	CURL* http_get = curl_easy_init();
 
 	if (http_get != NULL)
 	{
 		CURLcode res_code = CURLE_OK;
+
+		//////////////////////////////////////////////////////////////////////////
+
+		//	1.客户端发出一个没有认证证书的请求
 
 		res_code = curl_easy_setopt(http_get, CURLOPT_URL, "http://172.16.51.9/ISAPI/Security/userCheck");
 
@@ -101,11 +105,30 @@ int main(void)
 			SZY_LOG("请求认证证书 Succ");
 
 			SZY_LOG("========================================");
-			SZY_LOG("header => %s", g_http_get_header.data);
+			SZY_LOG("header =>");
+			SZY_LOG("%s", g_http_get_header.data);
 			SZY_LOG("========================================");
-			SZY_LOG("body => %s", g_http_get_body.data);
+			SZY_LOG("body =>");
+			SZY_LOG("%s", g_http_get_body.data);
 			SZY_LOG("========================================");
 		}
+
+		//////////////////////////////////////////////////////////////////////////
+
+		//	2.生成一个消息摘要 & 验证
+
+		char realm[32];
+		char nonce[64];
+
+		memset(&realm[0], 0, sizeof(realm));
+		const char* p_realm_s = strstr(g_http_get_header.data, "realm=\"");
+		if (p_realm_s != NULL)
+		{
+			const char* p_realm_e = strstr(p_realm_s + 7, "\"");
+			memcpy(&realm[0], p_realm_s + 7, p_realm_e - p_realm_s - 7);
+		}
+
+		SZY_LOG("realm = %s", realm);
 
 		//////////////////////////////////////////////////////////////////////////
 
