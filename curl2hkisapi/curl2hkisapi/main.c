@@ -18,5 +18,41 @@ int main(void)
 	SZY_LOG("curl version : %s. async name lookup is %s.", info->version, \
 		(info->features & CURL_VERSION_ASYNCHDNS) ? "YES" : "NO");
 
+	//////////////////////////////////////////////////////////////////////////
+
+	//	1.客户端发出一个没有认证证书的请求
+
+	CURL* http_get = curl_easy_init();
+
+	if (http_get != NULL)
+	{
+		CURLcode res_code = CURLE_OK;
+
+
+
+		//////////////////////////////////////////////////////////////////////////
+
+		res_code = curl_easy_perform(http_get);
+
+		if (res_code != CURLE_OK)
+		{
+			SZY_LOG("请求认证证书 Fail - curl 错误码 %d", res_code);
+		} 
+		else
+		{
+			SZY_LOG("请求认证证书 Succ");
+		}
+
+		//////////////////////////////////////////////////////////////////////////
+
+		curl_easy_cleanup(http_get);
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+
+	curl_global_cleanup();
+
+	//////////////////////////////////////////////////////////////////////////
+
 	return 0;
 }
