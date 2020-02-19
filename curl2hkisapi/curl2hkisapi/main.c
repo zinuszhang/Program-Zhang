@@ -26,25 +26,30 @@ struct buff
 /*                                                                      */
 /************************************************************************/
 
-static struct buff g_http_get_buff;
+static struct buff g_http_get_header;
+static struct buff g_http_get_body;
 
-static size_t http_get_write_body(void* ptr, size_t size, size_t nmemb, void* stream)
+/************************************************************************/
+/*                                                                      */
+/************************************************************************/
+
+static size_t curl_buff_write(void* ptr, size_t size, size_t nmemb, void* stream)
 {
-	struct buff* body = stream;
+	struct buff* buff = stream;
 
-	if (sizeof(body->data) - body->len >= size * nmemb)
+	if (sizeof(buff->data) - buff->len >= size * nmemb)
 	{
-		memcpy(&body->data[body->len], ptr, size * nmemb);
-		body->len += size * nmemb;
+		memcpy(&buff->data[buff->len], ptr, size * nmemb);
+		buff->len += size * nmemb;
 
 		return size * nmemb;
 	}
 	else
 	{
-		memcpy(&body->data[body->len], ptr, sizeof(body->data) - body->len);
-		body->len = sizeof(body->data);
+		memcpy(&buff->data[buff->len], ptr, sizeof(buff->data) - buff->len);
+		buff->len = sizeof(buff->data);
 
-		return sizeof(body->data) - body->len;
+		return sizeof(buff->data) - buff->len;
 	}
 }
 
@@ -75,9 +80,13 @@ int main(void)
 
 		res_code = curl_easy_setopt(http_get, CURLOPT_URL, "http://172.16.51.9/ISAPI/Security/userCheck");
 
-		memset(&g_http_get_buff, 0, sizeof(g_http_get_buff));
-		res_code = curl_easy_setopt(http_get, CURLOPT_WRITEFUNCTION, http_get_write_body);
-		res_code = curl_easy_setopt(http_get, CURLOPT_WRITEDATA, &g_http_get_buff);
+		memset(&g_http_get_header, 0, sizeof(g_http_get_header));
+		res_code = curl_easy_setopt(http_get, CURLOPT_HEADERFUNCTION, curl_buff_write);
+		res_code = curl_easy_setopt(http_get, CURLOPT_HEADERDATA, &g_http_get_header);
+
+		memset(&g_http_get_body, 0, sizeof(g_http_get_body));
+		res_code = curl_easy_setopt(http_get, CURLOPT_WRITEFUNCTION, curl_buff_write);
+		res_code = curl_easy_setopt(http_get, CURLOPT_WRITEDATA, &g_http_get_body);
 
 		//////////////////////////////////////////////////////////////////////////
 
@@ -92,7 +101,9 @@ int main(void)
 			SZY_LOG("请求认证证书 Succ");
 
 			SZY_LOG("========================================");
-			SZY_LOG("body => %s", g_http_get_buff.data);
+			SZY_LOG("header => %s", g_http_get_header.data);
+			SZY_LOG("========================================");
+			SZY_LOG("body => %s", g_http_get_body.data);
 			SZY_LOG("========================================");
 		}
 
