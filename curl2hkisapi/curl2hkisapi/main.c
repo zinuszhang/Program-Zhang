@@ -144,7 +144,7 @@ int main(void)
 		SZY_LOG("nonce = %s", nonce);
 
 		//////////////////////////////////////////////////////////////////////////
-
+#if 0
 		//	3.计算 摘要认证 response 值
 
 		char a1[64], md5_a1[64];
@@ -208,7 +208,39 @@ int main(void)
 			SZY_LOG("%s", g_http_get_body.data);
 			SZY_LOG("========================================");
 		}
+#else
+		//	4.客户端发出 认证 请求 - 使用 curl 摘要认证
 
+		res_code = curl_easy_setopt(http_get, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+
+		res_code = curl_easy_setopt(http_get, CURLOPT_USERNAME, "admin");
+		res_code = curl_easy_setopt(http_get, CURLOPT_PASSWORD, "Clp123456");
+
+		res_code = curl_easy_setopt(http_get, CURLOPT_CUSTOMREQUEST, "GET");
+
+		memset(&g_http_get_header, 0, sizeof(g_http_get_header));
+		memset(&g_http_get_body, 0, sizeof(g_http_get_body));
+
+		res_code = curl_easy_perform(http_get);
+
+		if (res_code != CURLE_OK)
+		{
+			SZY_LOG("请求认证证书 Fail - curl 错误码 %d 错误信息 %s", res_code, curl_easy_strerror(res_code));
+		}
+		else
+		{
+			SZY_LOG("请求认证证书 Succ");
+
+			SZY_LOG("========================================");
+			SZY_LOG("header =>");
+			SZY_LOG("%s", g_http_get_header.data);
+			SZY_LOG("========================================");
+			SZY_LOG("body =>");
+			SZY_LOG("%s", g_http_get_body.data);
+			SZY_LOG("========================================");
+		}
+
+#endif
 		//////////////////////////////////////////////////////////////////////////
 
 		curl_easy_cleanup(http_get);
