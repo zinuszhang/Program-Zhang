@@ -22,8 +22,16 @@
 /*                                                                      */
 /************************************************************************/
 
+#include <string.h>
+
+/************************************************************************/
+/*                                                                      */
+/************************************************************************/
+
 #define PASSWDMD5FLAG				"szymd5_"
 #define MD5LEN						32
+
+#define md5_32(in, out)				hk_isapi_get_md5_hash(in, strlen(in), out)
 
 /************************************************************************/
 /*                                                                      */
@@ -32,8 +40,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-	void md5_32(const char *in, char *out);
 
 	void hk_isapi_get_md5_hash(unsigned char* buf, int length, unsigned char* digest);
 

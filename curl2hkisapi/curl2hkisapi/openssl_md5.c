@@ -31,20 +31,6 @@
 /*                                                                      */
 /************************************************************************/
 
-void md5_32(const char *in, char *out)
-{
-	uint8_t md[16];
-
-	MD5(in, strlen(in), md);
-
-	for (int i = 0; i < 16; i++)
-	{
-		sprintf(out + i * 2, "%02x", md[i]);
-	}
-
-	out[32] = '\0';
-}
-
 void hk_isapi_get_md5_hash(unsigned char* buf, int length, unsigned char* digest)
 {
 	unsigned char hash[CRYPT_HASH_SIZE];
@@ -55,7 +41,7 @@ void hk_isapi_get_md5_hash(unsigned char* buf, int length, unsigned char* digest
 
 	MD5(buf, length, hash);
 
-	for (i = 0, r = result; i < 16; i++)
+	for (i = 0, r = result; i < CRYPT_HASH_SIZE; i++)
 	{
 		*r++ = hex[hash[i] >> 4];
 		*r++ = hex[hash[i] & 0xF];
