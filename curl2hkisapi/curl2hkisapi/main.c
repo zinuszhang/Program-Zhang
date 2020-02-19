@@ -98,8 +98,6 @@ int main(void)
 		res_code = curl_easy_setopt(http_get, CURLOPT_WRITEFUNCTION, curl_buff_write);
 		res_code = curl_easy_setopt(http_get, CURLOPT_WRITEDATA, &g_http_get_body);
 
-		//////////////////////////////////////////////////////////////////////////
-
 		res_code = curl_easy_perform(http_get);
 
 		if (res_code != CURLE_OK)
@@ -172,6 +170,44 @@ int main(void)
 		SZY_LOG("a2 = %s ===> md5(a2) = %s", a2, md5_a2);
 		SZY_LOG("<md5(a1):nonce:md5(a2)> = %s", three_tuple);
 		SZY_LOG("response = %s", response);
+
+		//////////////////////////////////////////////////////////////////////////
+
+		//	4.客户端发出 认证 请求
+
+		struct curl_slist* headers = NULL;
+
+		char authorization[512];
+		memset(authorization, 0, sizeof(authorization));
+		sprintf(authorization, "Authorization: Digest username=\"%s\", realm=\"%s\", nonce=\"%s\", uri=\"%s\", response = \"%s\"",
+			"admin", realm, nonce, "/ISAPI/Security/userCheck", response);
+		headers = curl_slist_append(headers, authorization);
+
+		curl_easy_setopt(http_get, CURLOPT_HTTPHEADER, headers);
+
+		memset(&g_http_get_header, 0, sizeof(g_http_get_header));
+		memset(&g_http_get_body, 0, sizeof(g_http_get_body));
+
+		res_code = curl_easy_perform(http_get);
+
+		curl_slist_free_all(headers);	/* free the header list */
+
+		if (res_code != CURLE_OK)
+		{
+			SZY_LOG("请求认证证书 Fail - curl 错误码 %d 错误信息 %s", res_code, curl_easy_strerror(res_code));
+		}
+		else
+		{
+			SZY_LOG("请求认证证书 Succ");
+
+			SZY_LOG("========================================");
+			SZY_LOG("header =>");
+			SZY_LOG("%s", g_http_get_header.data);
+			SZY_LOG("========================================");
+			SZY_LOG("body =>");
+			SZY_LOG("%s", g_http_get_body.data);
+			SZY_LOG("========================================");
+		}
 
 		//////////////////////////////////////////////////////////////////////////
 
