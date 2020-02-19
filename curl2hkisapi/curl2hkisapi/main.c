@@ -28,7 +28,7 @@ int main(void)
 	{
 		CURLcode res_code = CURLE_OK;
 
-
+		res_code = curl_easy_setopt(http_get, CURLOPT_URL, "http://172.16.51.9/ISAPI/Security/userCheck");
 
 		//////////////////////////////////////////////////////////////////////////
 
