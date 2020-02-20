@@ -21,7 +21,7 @@
 struct buff
 {
 	size_t len;
-	uint8_t data[4096];
+	uint8_t data[16 * 1024];
 };
 
 /************************************************************************/
@@ -41,13 +41,18 @@ static size_t curl_buff_write(void* ptr, size_t size, size_t nmemb, void* stream
 
 #if 1
 	SZY_LOG("================================ recv data len %d =============================", size * nmemb);
-
+#if 0
 	const char* p = ptr;
 
 	for (size_t i = 0; i < size * nmemb; i++)
 	{
 		putchar(p[i]);
 	}
+#else
+	static int time = 0;
+
+	SZY_LOG("recv time = %d => len %d", time++, size * nmemb);
+#endif
 #endif
 
 	if (sizeof(buff->data) - buff->len >= size * nmemb)
@@ -323,6 +328,14 @@ int main(void)
 
 	const char* hkurl[] = {
 		"http://172.16.51.9/ISAPI/Event/notification/alertStream",
+		"http://172.16.51.9/ISAPI/Event/notification/httpHosts",
+		"http://172.16.51.9/ISAPI/Event/notification/httpHosts/capabilities",
+		"http://172.16.51.9/ISAPI/Event/notification/subscribeEventCap",
+		"http://172.16.51.9/ISAPI/System/capabilities",
+		"http://172.16.51.9/ISAPI/Event/notification/alertStream/capabilities",
+		"http://172.16.51.9/ISAPI/Thermal/channels/2/thermometry/basicParam",
+		"http://172.16.51.9/ISAPI/Thermal/channels/2/thermometry/0/alarmRules/capabilities",
+		"http://172.16.51.9/ISAPI/Thermal/channels/2/thermometry/basicParam/capabilities",
 		"http://172.16.51.9/ISAPI/Thermal/channels/0/thermIntell/capabilities",
 		"http://172.16.51.9/ISAPI/Event/triggers/IO-1",
 		"http://172.16.51.9/ISAPI/Event/capabilities",
