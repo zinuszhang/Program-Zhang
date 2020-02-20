@@ -41,13 +41,18 @@ static size_t curl_buff_write(void* ptr, size_t size, size_t nmemb, void* stream
 
 #if 1
 	SZY_LOG("================================ recv data len %d =============================", size * nmemb);
-#if 0
-	const char* p = ptr;
-
-	for (size_t i = 0; i < size * nmemb; i++)
+#if 1
+	if (strstr(ptr, "videoloss") == NULL)
 	{
-		putchar(p[i]);
+		const char* p = ptr;
+
+		for (size_t i = 0; i < size * nmemb; i++)
+		{
+			putchar(p[i]);
+		}
 	}
+
+	return size * nmemb;
 #else
 	static int time = 0;
 
