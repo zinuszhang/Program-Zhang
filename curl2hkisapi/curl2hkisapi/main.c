@@ -13,7 +13,7 @@
 /*                                                                      */
 /************************************************************************/
 
-#define SZY_LOG(fmt, ...)			do { puts(ctime(time(NULL))); printf(fmt, ##__VA_ARGS__); putchar('\n'); putchar('\n'); } while (0)
+#define SZY_LOG(fmt, ...)			do { time_t t = time(NULL); puts(ctime(&t)); printf(fmt, ##__VA_ARGS__); putchar('\n'); putchar('\n'); } while (0)
 
 /************************************************************************/
 /*                                                                      */
@@ -43,7 +43,7 @@ static size_t curl_buff_write(void* ptr, size_t size, size_t nmemb, void* stream
 #if 1
 	SZY_LOG("================================ recv data len %d =============================", size * nmemb);
 #if 1
-	if (strstr(ptr, "videoloss") == NULL)
+	if (strstr(ptr, "videoloss") == NULL && strstr(ptr, "boundary") == NULL)
 	{
 		const char* p = ptr;
 
