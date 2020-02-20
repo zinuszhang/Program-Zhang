@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <time.h>
 
 #include <curl/curl.h>
 
@@ -12,7 +13,7 @@
 /*                                                                      */
 /************************************************************************/
 
-#define SZY_LOG(fmt, ...)			printf(fmt, ##__VA_ARGS__); putchar('\n')
+#define SZY_LOG(fmt, ...)			do { puts(ctime(time(NULL))); printf(fmt, ##__VA_ARGS__); putchar('\n'); putchar('\n'); } while (0)
 
 /************************************************************************/
 /*                                                                      */
