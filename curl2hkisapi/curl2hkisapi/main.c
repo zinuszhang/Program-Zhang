@@ -22,7 +22,7 @@
 struct buff
 {
 	size_t len;
-	uint8_t data[16 * 1024];
+	uint8_t data[64 * 1024];
 };
 
 /************************************************************************/
@@ -43,7 +43,9 @@ static size_t curl_buff_write(void* ptr, size_t size, size_t nmemb, void* stream
 #if 1
 	SZY_LOG("================================ recv data len %d =============================", size * nmemb);
 #if 1
-	if (strstr(ptr, "videoloss") == NULL && strstr(ptr, "boundary") == NULL)
+	if (strstr(ptr, "videoloss") == NULL
+		&& strstr(ptr, "boundary") == NULL
+		&& strstr(ptr, "Content-Type: image/pjpeg") == NULL)
 	{
 		const char* p = ptr;
 
