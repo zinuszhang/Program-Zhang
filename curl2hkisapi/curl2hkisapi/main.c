@@ -73,11 +73,13 @@ static size_t curl_buff_write(void* ptr, size_t size, size_t nmemb, void* stream
 
 #if DBG_WRITE_2_FILE
 	fwrite(ptr, size, nmemb, g_fp_cache);
+	fflush(g_fp_cache);
 
 	static int cache_index = 0;
 	char buff_cache_index[256];
 	sprintf(buff_cache_index, "================================ recv cache_index (%d) len (%d) =============================", cache_index++, size * nmemb);
 	fwrite(buff_cache_index, strlen(buff_cache_index), 1, g_fp_cache_index);
+	fflush(g_fp_cache_index);
 #endif
 
 	if (sizeof(buff->data) - buff->len >= size * nmemb)
