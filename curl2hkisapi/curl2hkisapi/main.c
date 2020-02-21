@@ -319,12 +319,12 @@ static void hk_isapi_access(const char* url)
 		res_code = curl_easy_setopt(http_get, CURLOPT_CUSTOMREQUEST, "GET");
 
 		memset(&g_http_get_header, 0, sizeof(g_http_get_header));
-		//res_code = curl_easy_setopt(http_get, CURLOPT_HEADERFUNCTION, curl_buff_write);
-		//res_code = curl_easy_setopt(http_get, CURLOPT_HEADERDATA, &g_http_get_header);
+		res_code = curl_easy_setopt(http_get, CURLOPT_HEADERFUNCTION, curl_buff_write);
+		res_code = curl_easy_setopt(http_get, CURLOPT_HEADERDATA, &g_http_get_header);
 
 		memset(&g_http_get_body, 0, sizeof(g_http_get_body));
-		res_code = curl_easy_setopt(http_get, CURLOPT_WRITEFUNCTION, curl_buff_write);
-		res_code = curl_easy_setopt(http_get, CURLOPT_WRITEDATA, &g_http_get_body);
+		//res_code = curl_easy_setopt(http_get, CURLOPT_WRITEFUNCTION, curl_buff_write);
+		//res_code = curl_easy_setopt(http_get, CURLOPT_WRITEDATA, &g_http_get_body);
 
 		res_code = curl_easy_perform(http_get);
 
