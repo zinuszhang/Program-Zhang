@@ -345,7 +345,7 @@ int main(void)
 {
 #if DBG_WRITE_2_FILE
 	char filename[256];
-	sprintf(filename, "./response_%lld.cache", time(NULL));
+	sprintf(filename, "./response_%ld.cache", time(NULL));
 	g_fp_cache = fopen(filename, "w");
 #endif
 
