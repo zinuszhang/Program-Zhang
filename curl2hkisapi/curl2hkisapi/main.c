@@ -13,6 +13,12 @@
 /*                                                                      */
 /************************************************************************/
 
+#define	DBG_WRITE_2_FILE			1
+
+/************************************************************************/
+/*                                                                      */
+/************************************************************************/
+
 #define SZY_LOG(fmt, ...)			do { time_t t = time(NULL); puts(ctime(&t)); printf(fmt, ##__VA_ARGS__); putchar('\n'); putchar('\n'); } while (0)
 
 /************************************************************************/
@@ -22,12 +28,16 @@
 struct buff
 {
 	size_t len;
-	uint8_t data[64 * 1024];
+	uint8_t data[4 * 1024 * 1024];
 };
 
 /************************************************************************/
 /*                                                                      */
 /************************************************************************/
+
+#if DBG_WRITE_2_FILE
+static FILE* g_fp_cache = NULL;
+#endif
 
 static struct buff g_http_get_header;
 static struct buff g_http_get_body;
@@ -41,8 +51,9 @@ static size_t curl_buff_write(void* ptr, size_t size, size_t nmemb, void* stream
 	struct buff* buff = stream;
 
 #if 1
-	SZY_LOG("================================ recv data len %d =============================", size * nmemb);
-#if 1
+	static int time_cnt = 0;
+	SZY_LOG("================================ recv time (%d) len (%d) =============================", time_cnt++, size * nmemb);
+#if 0
 	if (strstr(ptr, "videoloss") == NULL
 		&& strstr(ptr, "boundary") == NULL
 		&& strstr(ptr, "Content-Type: image/pjpeg") == NULL)
@@ -56,11 +67,11 @@ static size_t curl_buff_write(void* ptr, size_t size, size_t nmemb, void* stream
 	}
 
 	return size * nmemb;
-#else
-	static int time = 0;
-
-	SZY_LOG("recv time = %d => len %d", time++, size * nmemb);
 #endif
+#endif
+
+#if DBG_WRITE_2_FILE
+	fwrite(ptr, size, nmemb, g_fp_cache);
 #endif
 
 	if (sizeof(buff->data) - buff->len >= size * nmemb)
@@ -332,6 +343,12 @@ static void hk_isapi_access(const char* url)
 
 int main(void)
 {
+#if DBG_WRITE_2_FILE
+	char filename[256];
+	sprintf(filename, "./response_%lld.cache", time(NULL));
+	g_fp_cache = fopen(filename, "w");
+#endif
+
 	curl_global_init(CURL_GLOBAL_ALL);
 
 	const char* hkurl[] = {
@@ -363,6 +380,10 @@ int main(void)
 	}
 
 	curl_global_cleanup();
+
+#if DBG_WRITE_2_FILE
+	fclose(g_fp_cache);
+#endif
 
 	return 0;
 }
