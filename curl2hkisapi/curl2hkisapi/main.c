@@ -37,6 +37,7 @@ struct buff
 
 #if DBG_WRITE_2_FILE
 static FILE* g_fp_cache = NULL;
+static FILE* g_fp_cache_index = NULL;
 #endif
 
 static struct buff g_http_get_header;
@@ -72,6 +73,11 @@ static size_t curl_buff_write(void* ptr, size_t size, size_t nmemb, void* stream
 
 #if DBG_WRITE_2_FILE
 	fwrite(ptr, size, nmemb, g_fp_cache);
+
+	static int cache_index = 0;
+	char buff[256];
+	sprintf(buff, "================================ recv cache_index (%d) len (%d) =============================", cache_index++, size * nmemb);
+	fwrite(buff, strlen(buff), 1, g_fp_cache_index);
 #endif
 
 	if (sizeof(buff->data) - buff->len >= size * nmemb)
@@ -345,8 +351,12 @@ int main(void)
 {
 #if DBG_WRITE_2_FILE
 	char filename[256];
+
 	sprintf(filename, "./response_%ld.cache", time(NULL));
 	g_fp_cache = fopen(filename, "w");
+
+	sprintf(filename, "./response_%ld.cache_index", time(NULL));
+	g_fp_cache_index = fopen(filename, "w");
 #endif
 
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -383,6 +393,7 @@ int main(void)
 
 #if DBG_WRITE_2_FILE
 	fclose(g_fp_cache);
+	fclose(g_fp_cache_index);
 #endif
 
 	return 0;
