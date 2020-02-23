@@ -226,17 +226,17 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 		{
 		BOUNDARY:
 
-			SZY_LOG("recv body => %s", (char*)ptr);
+			//SZY_LOG("recv body => %s", (char*)ptr);
 
 			p = ptr;
 
-			if (strnstr(p + 10, "application/xml", 15) != NULL)
+			if (strnstr(p + 10, "application/xml", size * nmemb - 10) != NULL)
 			{
 				body_anls->content_type = 1;
 
 				SZY_LOG("接收到 application/xml 数据 %s", (char*)ptr);
 			}
-			else if (strnstr(p + 10, "image/pjpeg", 11) != NULL)
+			else if (strnstr(p + 10, "image/pjpeg", size * nmemb - 10) != NULL)
 			{
 				body_anls->content_type = 2;
 
