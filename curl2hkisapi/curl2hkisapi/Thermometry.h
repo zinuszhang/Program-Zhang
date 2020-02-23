@@ -10,4 +10,6 @@ void thermometry_init(void);
 
 int thermometry_get_temp_and_jpeg(time_t t_head, time_t t_tail, double* temp, uint8_t* jpeg, int size);
 
+void thermometry_reset_link(void);
+
 #endif /* THERMOMETRY_H */

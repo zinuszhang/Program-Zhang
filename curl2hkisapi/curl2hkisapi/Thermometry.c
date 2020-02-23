@@ -154,6 +154,10 @@ static int g_jpeg_size;
 
 //////////////////////////////////////////////////////////////////////////
 
+static bool g_link_reset;
+
+//////////////////////////////////////////////////////////////////////////
+
 struct head_analysis g_head_anls;
 struct body_analysis g_body_anls;
 
@@ -186,6 +190,17 @@ static size_t curl_write_head(void* ptr, size_t size, size_t nmemb, void* stream
 	struct head_analysis* head_anls = stream;
 
 	const char* p = NULL;
+
+
+
+	if (g_link_reset)
+	{
+		g_link_reset = false;
+
+		return 0;
+	}
+
+
 
 	if (!head_anls->is_realm_right)
 	{
@@ -221,6 +236,13 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 	if (!g_head_anls.is_realm_right || !g_head_anls.is_login_succ)
 	{
+		return 0;
+	}
+
+	if (g_link_reset)
+	{
+		g_link_reset = false;
+
 		return 0;
 	}
 
@@ -508,6 +530,8 @@ void thermometry_init(void)
 	g_pf_dbg_image_content = fopen("./dbg_image_content.cache", "w");
 #endif
 
+	g_link_reset = false;
+
 	//////////////////////////////////////////////////////////////////////////
 
 	pthread_t tid;
@@ -560,4 +584,9 @@ int thermometry_get_temp_and_jpeg(time_t t_head, time_t t_tail, double* temp, ui
 	}
 
 	return ret;
+}
+
+void thermometry_reset_link(void)
+{
+	g_link_reset = true;
 }

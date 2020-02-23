@@ -432,6 +432,13 @@ int main(void)
 
 
 
+		if (i == 5)
+		{
+			thermometry_reset_link();
+		}
+
+
+
 		sleep(1);
 	}
 
