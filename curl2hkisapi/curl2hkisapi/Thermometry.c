@@ -356,7 +356,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 					p += 88 + cal_int_len(body_anls->content_len) + 4;
 
-					//SZY_LOG("解析到 JPEG 数据 content len %d", body_anls->content_len);
+					SZY_LOG("解析到 JPEG 数据 content len %d", body_anls->content_len);
 				}
 				else
 				{
@@ -400,15 +400,15 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 					double temp = 0;	sscanf(currTemperature, "%lf", &temp);
 					int pic_num = 1;	sscanf(detectionPicturesNumber, "%d", &pic_num);
 
-					if (pthread_mutex_lock(&g_mux_temp) == 0)
+					//if (pthread_mutex_lock(&g_mux_temp) == 0)
 					{
 						g_temp_timestamp = time(NULL) + 28800;
 						g_temp_type = 1;
 						g_temp = temp;
 
-						pthread_mutex_unlock(&g_mux_temp);
+						//pthread_mutex_unlock(&g_mux_temp);
 
-						SZY_LOG("更新 温度 warning - 时间 %ld 温度 %lf", g_temp_timestamp, g_temp);
+						SZY_LOG("更新 温度 warning - 时间 %ld 温度 %lf 图片分段 %d", g_temp_timestamp, g_temp, pic_num);
 					}
 				}
 				else if (strncmp(eventType, "TMA", 3) == 0)
@@ -421,15 +421,15 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 					double temp = 0;	sscanf(currTemperature, "%lf", &temp);
 					int pic_num = 1;	sscanf(detectionPicturesNumber, "%d", &pic_num);
 
-					if (pthread_mutex_lock(&g_mux_temp) == 0)
+					//if (pthread_mutex_lock(&g_mux_temp) == 0)
 					{
 						g_temp_timestamp = time(NULL) + 28800;
 						g_temp_type = 2;
 						g_temp = temp;
 
-						pthread_mutex_unlock(&g_mux_temp);
+						//pthread_mutex_unlock(&g_mux_temp);
 
-						SZY_LOG("更新 温度 alarm - 时间 %ld 温度 %lf", g_temp_timestamp, g_temp);
+						SZY_LOG("更新 温度 alarm - 时间 %ld 温度 %lf 图片分段 %d", g_temp_timestamp, g_temp, pic_num);
 					}
 				}
 				else
