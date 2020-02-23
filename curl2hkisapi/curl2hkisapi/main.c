@@ -407,6 +407,8 @@ int main(void)
 
 int main(void)
 {
+	curl_global_init(CURL_GLOBAL_ALL);
+
 	thermometry_init();
 
 	for (int i = 0; i < 30; i++)
@@ -443,6 +445,8 @@ int main(void)
 
 		sleep(1);
 	}
+
+	curl_global_cleanup();
 
 	return 0;
 }
