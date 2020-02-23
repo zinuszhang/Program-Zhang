@@ -234,7 +234,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 			{
 				body_anls->content_type = 1;
 
-				SZY_LOG("接收到 application/xml 数据 %s", (char*)ptr);
+				//SZY_LOG("接收到 application/xml 数据 %s", (char*)ptr);
 			}
 			else if (strnstr(p + 10, "image/pjpeg", size * nmemb - 10) != NULL)
 			{
@@ -244,7 +244,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 				body_anls->content_image_size = size * nmemb;
 
-				SZY_LOG("接收到 image/pjpeg 数据 %s", body_anls->content_image);
+				//SZY_LOG("接收到 image/pjpeg 数据 %s", body_anls->content_image);
 			}
 		}
 	}
@@ -253,7 +253,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 		switch (body_anls->content_type)
 		{
 		case 1:						//	application/xml
-
+		{
 			//	此处假定一次就可将 xml 数据完全接收
 
 			if ((p = strnstr(ptr, "<eventType>", size * nmemb)) != NULL)
@@ -297,8 +297,9 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 			body_anls->content_len_valid_left = 0;
 
 			break;
+		}
 		case 2:						//	image/pjpeg
-
+		{
 			//	异常
 
 			if (strncmp(ptr, "--boundary", 10) == 0)
@@ -331,6 +332,8 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 			if (p[size * nmemb - 2] == '\r' && p[size * nmemb - 1] == '\n')
 			{
 				//	图片已接收完毕
+
+				SZY_LOG("图片已接收完毕 长度 %d", body_anls->content_image_size);
 
 				if (pthread_mutex_lock(&g_mux_jpeg) == 0)
 				{
@@ -374,6 +377,9 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 				body_anls->content_len_valid_left = 0;
 			}
 
+			break;
+		}
+		default:
 			break;
 		}
 	}
