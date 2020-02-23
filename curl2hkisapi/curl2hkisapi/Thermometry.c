@@ -218,13 +218,15 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 		return 0;
 	}
 
-	SZY_LOG("recv body => %s", (char*)ptr);
+
 
 	if (body_anls->content_type == 0)
 	{
 		if (strncmp(ptr, "--boundary", 10) == 0)
 		{
 		BOUNDARY:
+
+			SZY_LOG("recv body => %s", (char*)ptr);
 
 			p = ptr;
 
