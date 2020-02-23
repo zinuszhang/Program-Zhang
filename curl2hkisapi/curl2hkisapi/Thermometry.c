@@ -264,16 +264,16 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 				//SZY_LOG("接收到 application/xml 数据 %s", (char*)ptr);
 			}
-			else if (strnstr(p + 10, "image/pjpeg", size * nmemb - 10) != NULL)
-			{
-				body_anls->content_type = 2;
+			//else if (strnstr(p + 10, "image/pjpeg", size * nmemb - 10) != NULL)
+			//{
+			//	body_anls->content_type = 2;
 
-				memcpy(body_anls->content_image, ptr, size * nmemb);
+			//	memcpy(body_anls->content_image, ptr, size * nmemb);
 
-				body_anls->content_image_size = size * nmemb;
+			//	body_anls->content_image_size = size * nmemb;
 
-				SZY_LOG("接收到 image/pjpeg 数据 %s", body_anls->content_image);
-			}
+			//	SZY_LOG("接收到 image/pjpeg 数据 %s", body_anls->content_image);
+			//}
 		}
 	}
 	else
