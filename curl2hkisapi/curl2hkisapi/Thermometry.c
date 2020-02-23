@@ -46,6 +46,14 @@ void get_dev_bind_info(struct dev_bind_info* info)
 /**
  * ISAPI 通信过程
 
+	心跳 就是 videoloss
+
+		Remark:
+		卡片机 心跳是 300ms/次
+		在 IPC/IPD5.5.0 版本 之前的设备，心跳频率是 300 ms/ 次；
+		前端 设备在（ IPC/IPD5.5.0 版本 ）之后 ，修改 心跳频率是 ” 10 秒一次心跳，连续 3次没有心跳认为超
+		时。心跳数据格式沿用现有方式不变 ”；
+
 	一：正常通信过程
 
 	1	【HEAD】获取认证信息
@@ -88,6 +96,8 @@ void get_dev_bind_info(struct dev_bind_info* info)
 		<detectionPicturesNumber>2</detectionPicturesNumber>
 		\r\n
 
+		--- 备注：当设备性能不足时，上述信息 3 4 存在 同一次 回调情况
+
 	5	【BODY】获取 boundary - image/pjpeg 信息头
 
 		（说明：照片很大，需要多个 boundary 才能传输完成）
@@ -107,6 +117,8 @@ void get_dev_bind_info(struct dev_bind_info* info)
 
 		。。。 。。。
 		\r\n
+
+		--- 备注：当设备性能不足时，上述信息 5 6 存在 同一次 回调情况
 
  */
 
@@ -252,7 +264,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 	SZY_LOG("body recv time (%d) data size (%d)", cnt++, size * nmemb);
 
-	return size * nmemb;
+	//return size * nmemb;
 #endif
 
 	if (body_anls->content_type == 0)
@@ -267,9 +279,9 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 			if (strnstr(p + 10, "application/xml", size * nmemb - 10) != NULL)
 			{
-				body_anls->content_type = 1;
+				//body_anls->content_type = 1;
 
-				//SZY_LOG("接收到 application/xml 数据 %s", (char*)ptr);
+				SZY_LOG("接收到 application/xml 数据 %s", (char*)ptr);
 			}
 			//else if (strnstr(p + 10, "image/pjpeg", size * nmemb - 10) != NULL)
 			//{
@@ -283,6 +295,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 			//}
 		}
 	}
+#if 0
 	else
 	{
 		switch (body_anls->content_type)
@@ -436,6 +449,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 			break;
 		}
 	}
+#endif
 
 	return size * nmemb;
 }

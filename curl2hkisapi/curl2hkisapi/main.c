@@ -420,7 +420,7 @@ int main(void)
 
 	thermometry_init();
 
-	for (int i = 0; i < 30; i++)
+	for (int i = 0; i < 15; i++)
 	{
 		//time_t t = time(NULL) + 28800;
 		//char jpeg[256 * 1024];
