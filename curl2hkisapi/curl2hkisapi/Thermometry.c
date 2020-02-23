@@ -105,7 +105,7 @@ void get_dev_bind_info(struct dev_bind_info* info)
 
 		（说明：curl 多次回调，boundary 和 image/pjpeg 一同回调）
 
-		（说明：image 中的 Content-Length 不含 \r\n ）
+		（说明：image 中的 Content-Length 只是 二进制数据 长度，不含 \r\n ）
 
 		--boundary
 		Content-Disposition: form-data;
@@ -155,9 +155,12 @@ struct head_analysis
 struct body_analysis
 {
 	int content_type;				//	0 unknown; 1 application/xml; 2 image/pjpeg;
-	int content_len;
+	int content_len;					//	在接收到 image 时，初始化
+	int content_len_recv;				//	在接收到 image 时，初始化 0；在接收 BIN 数据 时，增加
+	int content_image_cnt;				//	在接收到 TMPA / TMA 时，初始化
+	int content_image_cnt_recv;			//	在接收到 TMPA / TMA 时，初始化 0；在接收到 image 时，增加
 	uint8_t content_image[256 * 1024];
-	int content_image_size;
+	int content_image_size;				//	在接收到 TMPA / TMA 时，初始化 0；在接收 BIN 数据 时，增加
 };
 
 /************************************************************************/
@@ -332,7 +335,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 		{
 			if (strncmp(p, "--boundary", 10) == 0)
 			{
-				//	--boun : XML / JPEG
+				//	--boundary : XML / JPEG
 
 				if (strncmp(p + 38, "xml", 3) == 0)
 				{
@@ -356,7 +359,12 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 					p += 88 + cal_int_len(body_anls->content_len) + 4;
 
-					SZY_LOG("解析到 JPEG 数据 content len %d", body_anls->content_len);
+					SZY_LOG("解析到 %d-%d JPEG 数据 content len %d",
+						body_anls->content_image_cnt,
+						++body_anls->content_image_cnt_recv,
+						body_anls->content_len);
+
+					body_anls->content_len_recv = 0;
 				}
 				else
 				{
@@ -400,16 +408,21 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 					double temp = 0;	sscanf(currTemperature, "%lf", &temp);
 					int pic_num = 1;	sscanf(detectionPicturesNumber, "%d", &pic_num);
 
-					//if (pthread_mutex_lock(&g_mux_temp) == 0)
+					if (pthread_mutex_lock(&g_mux_temp) == 0)
 					{
 						g_temp_timestamp = time(NULL) + 28800;
 						g_temp_type = 1;
 						g_temp = temp;
 
-						//pthread_mutex_unlock(&g_mux_temp);
+						pthread_mutex_unlock(&g_mux_temp);
 
 						SZY_LOG("更新 温度 warning - 时间 %ld 温度 %lf 图片分段 %d", g_temp_timestamp, g_temp, pic_num);
 					}
+
+					body_anls->content_image_cnt = pic_num;
+					body_anls->content_image_cnt_recv = 0;
+
+					body_anls->content_image_size = 0;
 				}
 				else if (strncmp(eventType, "TMA", 3) == 0)
 				{
@@ -421,16 +434,21 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 					double temp = 0;	sscanf(currTemperature, "%lf", &temp);
 					int pic_num = 1;	sscanf(detectionPicturesNumber, "%d", &pic_num);
 
-					//if (pthread_mutex_lock(&g_mux_temp) == 0)
+					if (pthread_mutex_lock(&g_mux_temp) == 0)
 					{
 						g_temp_timestamp = time(NULL) + 28800;
 						g_temp_type = 2;
 						g_temp = temp;
 
-						//pthread_mutex_unlock(&g_mux_temp);
+						pthread_mutex_unlock(&g_mux_temp);
 
 						SZY_LOG("更新 温度 alarm - 时间 %ld 温度 %lf 图片分段 %d", g_temp_timestamp, g_temp, pic_num);
 					}
+
+					body_anls->content_image_cnt = pic_num;
+					body_anls->content_image_cnt_recv = 0;
+
+					body_anls->content_image_size = 0;
 				}
 				else
 				{
@@ -456,9 +474,48 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 		{
 			//	JPEG => {binary}
 
-			body_anls->content_type = 0;
+			if (body_anls->content_len - body_anls->content_len_recv <= end - p)
+			{
+				//	本次已接收 完毕
 
-			break;
+				body_anls->content_type = 0;
+
+
+
+				memcpy(&body_anls->content_image[body_anls->content_image_size + body_anls->content_len_recv], p,
+					body_anls->content_len - body_anls->content_len_recv);
+
+				body_anls->content_image_size += body_anls->content_len;
+
+
+
+				p += (body_anls->content_len - body_anls->content_len_recv) + 2;	//	注意 \r\n 的长度
+
+
+
+				if (body_anls->content_image_cnt_recv == body_anls->content_image_cnt)
+				{
+					if (pthread_mutex_lock(&g_mux_jpeg) == 0)
+					{
+						g_jpeg_timestamp = time(NULL) + 28800;
+						memcpy(g_jpeg, body_anls->content_image, g_jpeg_size = body_anls->content_image_size);
+
+						pthread_mutex_unlock(&g_mux_jpeg);
+
+						SZY_LOG("更新 图片 - 时间 %ld 大小 %d", g_jpeg_timestamp, g_jpeg_size);
+					}
+				}
+			} 
+			else
+			{
+				//	还需要等待下一次接收
+
+				memcpy(&body_anls->content_image[body_anls->content_image_size + body_anls->content_len_recv], p, end - p);
+
+				body_anls->content_len_recv += end - p;
+
+				break;
+			}
 		}
 		else
 		{
