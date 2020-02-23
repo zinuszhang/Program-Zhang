@@ -123,7 +123,7 @@ void get_dev_bind_info(struct dev_bind_info* info)
 
 	--- 备注：当设备性能不足时，上述信息 3 4 5 6 存在 同一次 回调情况
 
-			CURL body 回调，ASCII 结构一定是完整的，比如：
+			CURL body 回调，ASCII 结构一定是完整的，不会被分割，比如：
 
 				I	先 --boundary 再 <EventNotificationAlert .../>
 					心跳-心跳 | 温度-温度
@@ -191,6 +191,48 @@ struct body_analysis g_body_anls;
 /*                                                                      */
 /************************************************************************/
 
+static int cal_int_len(int n)
+{
+	if (n < 10)
+	{
+		return 1;
+	}
+	else if (n < 100)
+	{
+		return 2;
+	}
+	else if (n < 1000)
+	{
+		return 3;
+	}
+	else if (n < 10000)
+	{
+		return 4;
+	}
+	else if (n < 100000)
+	{
+		return 5;
+	}
+	else if (n < 1000000)
+	{
+		return 6;
+	}
+	else if (n < 10000000)
+	{
+		return 7;
+	}
+	else if (n < 100000000)
+	{
+		return 8;
+	}
+	else if (n < 1000000000)
+	{
+		return 9;
+	}
+
+	return 10;
+}
+
 static size_t curl_write_head(void* ptr, size_t size, size_t nmemb, void* stream)
 {
 	struct head_analysis* head_anls = stream;
@@ -233,10 +275,6 @@ static size_t curl_write_head(void* ptr, size_t size, size_t nmemb, void* stream
 
 static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream)
 {
-	struct body_analysis* body_anls = stream;
-
-	const char* p = ptr;
-
 	if (!g_head_anls.is_realm_right || !g_head_anls.is_login_succ)
 	{
 		return 0;
@@ -249,6 +287,8 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 		return 0;
 	}
 
+
+
 #if 1
 	static int cnt = 0;
 
@@ -256,6 +296,78 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 	//return size * nmemb;
 #endif
+
+
+
+	struct body_analysis* body_anls = stream;
+
+	const char* const end = (char*)ptr + size * nmemb;
+	const char* p = ptr;
+
+	//	说明：以下固定数值，从数据抓包中推算得到
+
+	do 
+	{
+		if (body_anls->content_type == 0)
+		{
+			if (strncmp(p, "--boun", 6) == 0)
+			{
+				//	--boun : XML / JPEG
+
+				if (strncmp(p + 38, "xml", 3) == 0)
+				{
+					//	xml
+
+					body_anls->content_type = 1;
+
+					sscanf(p + 76, "%d", &body_anls->content_len);
+
+					p += 76 + cal_int_len(body_anls->content_len) + 4;
+
+					SZY_LOG("解析到 XML 数据 content len %d", body_anls->content_len);
+				}
+				else if (strncmp(p + 66, "jpeg", 4) == 0)
+				{
+					//	jpeg
+
+					body_anls->content_type = 2;
+
+					sscanf(p + 88, "%d", &body_anls->content_len);
+
+					p += 88 + cal_int_len(body_anls->content_len) + 4;
+
+					SZY_LOG("解析到 JPEG 数据 content len %d", body_anls->content_len);
+				}
+				else
+				{
+					//	异常 不处理
+
+					break;
+				}
+			}
+			else
+			{
+				//	异常 不处理
+
+				break;
+			}
+		}
+		else
+		{
+			//if (strncmp(p, "<Event", 6) == 0)
+			//{
+			//	//	<Event : videoloss / temp
+			//}
+			//else
+			//{
+			//	//	{binary}
+			//}
+
+			break;
+		}
+
+
+	} while (p < end);
 
 
 
