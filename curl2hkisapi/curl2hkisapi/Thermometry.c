@@ -90,13 +90,14 @@ void get_dev_bind_info(struct dev_bind_info* info)
 
 		。。。 。。。
 
+		<eventType>videoloss</eventType>		//	heartbeat
+
 		<eventType>TMPA</eventType>		//	warning
 		<eventType>TMA</eventType>		//	alarm
+
 		<currTemperature>48</currTemperature>
 		<detectionPicturesNumber>2</detectionPicturesNumber>
 		\r\n
-
-		--- 备注：当设备性能不足时，上述信息 3 4 存在 同一次 回调情况
 
 	5	【BODY】获取 boundary - image/pjpeg 信息头
 
@@ -118,8 +119,20 @@ void get_dev_bind_info(struct dev_bind_info* info)
 		。。。 。。。
 		\r\n
 
-		--- 备注：当设备性能不足时，上述信息 5 6 存在 同一次 回调情况
 
+
+	--- 备注：当设备性能不足时，上述信息 3 4 5 6 存在 同一次 回调情况
+
+			CURL body 回调，ASCII 结构一定是完整的，比如：
+
+				I	先 --boundary 再 <EventNotificationAlert .../>
+					心跳-心跳 | 温度-温度
+
+				II	先 --boundary 再 --boundary
+					心跳-心跳 | 心跳-温度 | 温度-图片
+
+				III	先 --boundary 再 图片信息
+					温度-图片
  */
 
 
@@ -178,31 +191,11 @@ struct body_analysis g_body_anls;
 /*                                                                      */
 /************************************************************************/
 
-static const char* strnstr(const char* haystack, const char* needle, size_t n)
-{
-	size_t needle_len = strlen(needle);
-
-	if (needle_len > n)
-	{
-		return NULL;
-	}
-
-	for (size_t index = 0; index <= n - needle_len; index++)
-	{
-		if (strncmp(haystack + index, needle, needle_len) == 0)
-		{
-			return haystack + index;
-		}
-	}
-
-	return NULL;
-}
-
 static size_t curl_write_head(void* ptr, size_t size, size_t nmemb, void* stream)
 {
 	struct head_analysis* head_anls = stream;
 
-	const char* p = NULL;
+	const char* p = ptr;
 
 
 
@@ -217,20 +210,17 @@ static size_t curl_write_head(void* ptr, size_t size, size_t nmemb, void* stream
 
 	if (!head_anls->is_realm_right)
 	{
-		if ((p = strnstr(ptr, "realm=\"", size * nmemb)) != NULL)
+		if (strncmp(p + sizeof("WWW-Authenticate: Digest qop=\"auth\", realm=\"") - 1, "IP Camera(E1518)", 16) == 0)
 		{
-			if (strncmp(p + 7, "IP Camera(E1518)", 16) == 0)
-			{
-				head_anls->is_realm_right = true;
+			head_anls->is_realm_right = true;
 
-				SZY_LOG("设备类型 正确");
-			}
+			SZY_LOG("设备类型 正确");
 		}
 	}
 
 	if (!head_anls->is_login_succ)
 	{
-		if ((p = strnstr(ptr, "HTTP/1.1 200 OK", size * nmemb)) != NULL)
+		if (strncmp(p, "HTTP/1.1 200 OK", 15) == 0)
 		{
 			head_anls->is_login_succ = true;
 
@@ -245,7 +235,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 {
 	struct body_analysis* body_anls = stream;
 
-	const char* p = NULL;
+	const char* p = ptr;
 
 	if (!g_head_anls.is_realm_right || !g_head_anls.is_login_succ)
 	{
@@ -267,189 +257,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 	//return size * nmemb;
 #endif
 
-	if (body_anls->content_type == 0)
-	{
-		if (strncmp(ptr, "--boundary", 10) == 0)
-		{
-		BOUNDARY:
 
-			//SZY_LOG("recv body => %s", (char*)ptr);
-
-			p = ptr;
-
-			if (strnstr(p + 10, "application/xml", size * nmemb - 10) != NULL)
-			{
-				//body_anls->content_type = 1;
-
-				SZY_LOG("接收到 application/xml 数据 %s", (char*)ptr);
-			}
-			//else if (strnstr(p + 10, "image/pjpeg", size * nmemb - 10) != NULL)
-			//{
-			//	body_anls->content_type = 2;
-
-			//	memcpy(body_anls->content_image, ptr, size * nmemb);
-
-			//	body_anls->content_image_size = size * nmemb;
-
-			//	SZY_LOG("接收到 image/pjpeg 数据 %s", body_anls->content_image);
-			//}
-		}
-	}
-#if 0
-	else
-	{
-		switch (body_anls->content_type)
-		{
-		case 1:						//	application/xml
-		{
-			//	此处假定一次就可将 xml 数据完全接收
-
-			if ((p = strnstr(ptr, "<eventType>", size * nmemb)) != NULL)
-			{
-				int temp_type = 0;
-
-				if (strncmp(p + 11, "TMPA", 4) == 0)
-				{
-					temp_type = 1;
-				}
-				else if (strncmp(p + 11, "TMA", 3) == 0)
-				{
-					temp_type = 2;
-				}
-
-				if (temp_type != 0)
-				{
-					double temp = 0;
-
-					p = strnstr(ptr, "<currTemperature>", size * nmemb);
-
-					sscanf(p + 17, "%lf", &temp);
-
-					//////////////////////////////////////////////////////////////////////////
-
-					if (pthread_mutex_lock(&g_mux_temp) == 0)
-					{
-						g_temp_timestamp = time(NULL) + 28800;
-						g_temp_type = temp_type;
-						g_temp = temp;
-
-						SZY_LOG("获取温度 时间 %ld 类型 %d 温度值 %lf", g_temp_timestamp, g_temp_type, g_temp);
-
-						pthread_mutex_unlock(&g_mux_temp);
-					}
-				}
-			}
-
-			body_anls->content_type = 0;
-			body_anls->content_len = 0;
-			body_anls->content_len_valid_left = 0;
-
-			break;
-		}
-		case 2:						//	image/pjpeg
-		{
-			//	异常
-
-			if (strncmp(ptr, "--boundary", 10) == 0)
-			{
-				body_anls->content_type = 0;
-				body_anls->content_len = 0;
-				body_anls->content_len_valid_left = 0;
-
-				goto BOUNDARY;
-			}
-
-			if (sizeof(body_anls->content_image) - body_anls->content_image_size >= size * nmemb)
-			{
-				memcpy(body_anls->content_image + body_anls->content_image_size, ptr, size * nmemb);
-
-				body_anls->content_image_size += size * nmemb;
-			}
-			//	图片过大
-			else
-			{
-				body_anls->content_type = 0;
-				body_anls->content_len = 0;
-				body_anls->content_len_valid_left = 0;
-
-				break;
-			}
-
-			p = ptr;
-
-			if (p[size * nmemb - 2] == '\r' && p[size * nmemb - 1] == '\n')
-			{
-				//	图片已接收完毕
-
-				SZY_LOG("图片已接收完毕 长度 %d", body_anls->content_image_size);
-
-#if DBG_IMAGE_CONTENT
-				fwrite(body_anls->content_image, body_anls->content_image_size, 1, g_pf_dbg_image_content);
-				fflush(g_pf_dbg_image_content);
-#endif
-
-				if (pthread_mutex_lock(&g_mux_jpeg) == 0)
-				{
-					g_jpeg_timestamp = time(NULL) + 28800;
-					g_jpeg_size = 0;
-
-
-
-					const char* const end = &body_anls->content_image[body_anls->content_image_size];
-					p = body_anls->content_image;
-
-					//SZY_LOG("image content addr [ %p , %p )", p, end);
-
-					while (p < end)
-					{
-						const char* p_content_len = strnstr(p, "Length:", end - p);
-
-						int content_len = 0;
-
-						sscanf(p_content_len + 7, "%d", &content_len);
-
-						//SZY_LOG("image context addr = %p", p_content_len);
-						//SZY_LOG("image content len = %d", content_len);
-
-
-
-						p = p_content_len + 8;
-
-						const char* p_rnrn = strnstr(p, "\r\n\r\n", end - p);
-
-						//SZY_LOG("image content --boundary end addr = %p", p_rnrn);
-
-
-
-						p = p_rnrn + 4;
-						//SZY_LOG("image content jpeg start addr = %p", p);
-
-						memcpy(&g_jpeg[g_jpeg_size], p, content_len);
-
-						g_jpeg_size += content_len;
-						p += content_len + 2;	//	content len 不包含 \r\n
-
-						//SZY_LOG("image content cur size %d", g_jpeg_size);
-						//SZY_LOG("image content cur --boundary start addr = %p", p);
-					}
-
-					SZY_LOG("获取图片 时间 %ld 长度 %d", g_jpeg_timestamp, g_jpeg_size);
-
-					pthread_mutex_unlock(&g_mux_jpeg);
-				}
-
-				body_anls->content_type = 0;
-				body_anls->content_len = 0;
-				body_anls->content_len_valid_left = 0;
-			}
-
-			break;
-		}
-		default:
-			break;
-		}
-	}
-#endif
 
 	return size * nmemb;
 }
