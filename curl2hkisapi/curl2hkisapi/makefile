@@ -1,6 +1,6 @@
 
 all:
-	gcc main.c openssl_md5.c -lcurl -lssl -lcrypto
+	gcc main.c Thermometry.c -lcurl -lssl -lcrypto -lpthread
 
 clean:
 	rm *.out
