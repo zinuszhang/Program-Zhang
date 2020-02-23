@@ -188,6 +188,8 @@ static size_t curl_write_head(void* ptr, size_t size, size_t nmemb, void* stream
 			if (strncmp(p + 7, "IP Camera(E1518)", 16) == 0)
 			{
 				head_anls->is_realm_right = true;
+
+				SZY_LOG("设备类型 正确");
 			}
 		}
 	}
@@ -197,6 +199,8 @@ static size_t curl_write_head(void* ptr, size_t size, size_t nmemb, void* stream
 		if ((p = strnstr(ptr, "HTTP/1.1 200 OK", size * nmemb)) != NULL)
 		{
 			head_anls->is_login_succ = true;
+
+			SZY_LOG("设备登录 成功");
 		}
 	}
 
@@ -225,6 +229,8 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 			if (strnstr(p + 10, "application/xml", 15) != NULL)
 			{
 				body_anls->content_type = 1;
+
+				SZY_LOG("接收到 application/xml 数据 %s", ptr);
 			}
 			else if (strnstr(p + 10, "image/pjpeg", 11) != NULL)
 			{
@@ -233,6 +239,8 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 				memcpy(body_anls->content_image, ptr, size * nmemb);
 
 				body_anls->content_image_size = size * nmemb;
+
+				SZY_LOG("接收到 image/pjpeg 数据 %s", body_anls->content_image);
 			}
 		}
 	} 
