@@ -356,7 +356,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 					const char* const end = &body_anls->content_image[body_anls->content_image_size];
 					p = body_anls->content_image;
 
-					SZY_LOG("image content addr [ %p , %p )", p, end);
+					//SZY_LOG("image content addr [ %p , %p )", p, end);
 
 					while (p < end)
 					{
@@ -366,8 +366,8 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 						sscanf(p_content_len + 7, "%d", &content_len);
 
-						SZY_LOG("image context addr = %p", p_content_len);
-						SZY_LOG("image content len = %d", content_len);
+						//SZY_LOG("image context addr = %p", p_content_len);
+						//SZY_LOG("image content len = %d", content_len);
 
 
 
@@ -375,20 +375,20 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 						const char* p_rnrn = strnstr(p, "\r\n\r\n", end - p);
 
-						SZY_LOG("image content --boundary end addr = %p", p_rnrn);
+						//SZY_LOG("image content --boundary end addr = %p", p_rnrn);
 
 
 
 						p = p_rnrn + 4;
-						SZY_LOG("image content jpeg start addr = %p", p);
+						//SZY_LOG("image content jpeg start addr = %p", p);
 
 						memcpy(&g_jpeg[g_jpeg_size], p, content_len);
 
 						g_jpeg_size += content_len;
 						p += content_len + 2;	//	content len 不包含 \r\n
 
-						SZY_LOG("image content cur size %d", g_jpeg_size);
-						SZY_LOG("image content cur --boundary start addr = %p", p);
+						//SZY_LOG("image content cur size %d", g_jpeg_size);
+						//SZY_LOG("image content cur --boundary start addr = %p", p);
 					}
 
 					SZY_LOG("获取图片 时间 %ld 长度 %d", g_jpeg_timestamp, g_jpeg_size);

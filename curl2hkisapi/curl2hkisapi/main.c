@@ -409,7 +409,31 @@ int main(void)
 {
 	thermometry_init();
 
-	sleep(60);
+	for (int i = 0; i < 60; i++)
+	{
+		time_t t = time(NULL);
+		char jpeg[256 * 1024];
+		int jpeg_len;
+
+		double temp;
+
+		jpeg_len = thermometry_get_temp_and_jpeg(t - 2, t + 2, &temp, jpeg, sizeof(jpeg));
+
+
+
+
+		char filename[256];
+		sprintf(filename, "./%d.jpg", t);
+		FILE* fp = fopen(filename, "w");
+		fwrite(jpeg, jpeg_len, 1, fp);
+		fflush(fp);
+		fclose(fp);
+
+
+
+
+		sleep(1);
+	}
 
 	return 0;
 }
