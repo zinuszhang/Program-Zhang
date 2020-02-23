@@ -409,7 +409,7 @@ int main(void)
 {
 	thermometry_init();
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 30; i++)
 	{
 		time_t t = time(NULL) + 28800;
 		char jpeg[256 * 1024];
@@ -422,17 +422,17 @@ int main(void)
 
 
 
-		char filename[256];
-		sprintf(filename, "./%d.jpg", t);
-		FILE* fp = fopen(filename, "w");
-		fwrite(jpeg, jpeg_len, 1, fp);
-		fflush(fp);
-		fclose(fp);
+		//char filename[256];
+		//sprintf(filename, "./%d.jpg", t);
+		//FILE* fp = fopen(filename, "w");
+		//fwrite(jpeg, jpeg_len, 1, fp);
+		//fflush(fp);
+		//fclose(fp);
 
 
 
 
-		if (i == 5)
+		if (i == 10)
 		{
 			thermometry_reset_link();
 		}
