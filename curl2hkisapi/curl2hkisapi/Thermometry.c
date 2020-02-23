@@ -246,7 +246,13 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 		return 0;
 	}
 
+#if 1
+	static int cnt = 0;
 
+	SZY_LOG("body recv time %d", cnt++);
+
+	return size * nmemb;
+#endif
 
 	if (body_anls->content_type == 0)
 	{
