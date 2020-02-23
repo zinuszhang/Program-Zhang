@@ -300,7 +300,7 @@ int main(void)
 	return 0;
 }
 
-#elif 1
+#elif 0
 
 static void hk_isapi_access(const char* url)
 {
@@ -397,6 +397,15 @@ int main(void)
 	fclose(g_fp_cache);
 	fclose(g_fp_cache_index);
 #endif
+
+	return 0;
+}
+
+#elif 1
+
+int main(void)
+{
+	thermometry_init();
 
 	return 0;
 }
