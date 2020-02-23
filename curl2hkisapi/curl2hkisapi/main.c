@@ -1,4 +1,5 @@
 
+#include <unistd.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -407,6 +408,8 @@ int main(void)
 int main(void)
 {
 	thermometry_init();
+
+	sleep(60);
 
 	return 0;
 }
