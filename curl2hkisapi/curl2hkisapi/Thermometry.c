@@ -232,7 +232,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 			{
 				body_anls->content_type = 1;
 
-				SZY_LOG("接收到 application/xml 数据 %s", (char *)ptr);
+				SZY_LOG("接收到 application/xml 数据 %s", (char*)ptr);
 			}
 			else if (strnstr(p + 10, "image/pjpeg", 11) != NULL)
 			{
@@ -245,7 +245,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 				SZY_LOG("接收到 image/pjpeg 数据 %s", body_anls->content_image);
 			}
 		}
-	} 
+	}
 	else
 	{
 		switch (body_anls->content_type)
