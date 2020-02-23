@@ -1,6 +1,7 @@
 
 #include "Thermometry.h"
 
+#include <unistd.h>
 #include <pthread.h>
 #include <errno.h>
 #include <string.h>
@@ -370,7 +371,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 static void* thd_isapi_2_ds2tb213avf(void* arg)
 {
-	pthread_detch(pthread_self());
+	pthread_detach(pthread_self());
 
 	sleep(1);
 

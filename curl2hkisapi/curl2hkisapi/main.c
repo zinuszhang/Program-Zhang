@@ -8,6 +8,7 @@
 #include <curl/curl.h>
 
 #include "openssl_md5.h"
+#include "Thermometry.h"
 
 /************************************************************************/
 /*                                                                      */
