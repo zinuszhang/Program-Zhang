@@ -409,9 +409,9 @@ int main(void)
 {
 	thermometry_init();
 
-	for (int i = 0; i < 60; i++)
+	for (int i = 0; i < 10; i++)
 	{
-		time_t t = time(NULL);
+		time_t t = time(NULL) + 28800;
 		char jpeg[256 * 1024];
 		int jpeg_len;
 
