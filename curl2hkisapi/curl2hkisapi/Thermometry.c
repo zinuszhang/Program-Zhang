@@ -85,6 +85,7 @@ void get_dev_bind_info(struct dev_bind_info* info)
 		<eventType>TMPA</eventType>		//	warning
 		<eventType>TMA</eventType>		//	alarm
 		<currTemperature>48</currTemperature>
+		<detectionPicturesNumber>2</detectionPicturesNumber>
 		\r\n
 
 	5	【BODY】获取 boundary - image/pjpeg 信息头

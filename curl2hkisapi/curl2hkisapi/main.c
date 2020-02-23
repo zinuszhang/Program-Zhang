@@ -30,7 +30,7 @@
 struct buff
 {
 	size_t len;
-	uint8_t data[4 * 1024 * 1024];
+	uint8_t data[512 * 1024];
 };
 
 /************************************************************************/
@@ -302,7 +302,7 @@ int main(void)
 	return 0;
 }
 
-#elif 0
+#elif 1
 
 static void hk_isapi_access(const char* url)
 {
