@@ -422,33 +422,33 @@ int main(void)
 
 	for (int i = 0; i < 15; i++)
 	{
-		//time_t t = time(NULL) + 28800;
-		//char jpeg[256 * 1024];
-		//int jpeg_len = 0;
+		time_t t = time(NULL) + 28800;
+		char jpeg[256 * 1024];
+		int jpeg_len = 0;
 
-		//double temp = 0;
+		double temp = 0;
 
-		//jpeg_len = thermometry_get_temp_and_jpeg(t - 2, t + 2, &temp, jpeg, sizeof(jpeg));
-
-
-
-		//SZY_LOG("main() get info - %lf'C - jpeg size %d", temp, jpeg_len);
-
-
-		//char filename[256];
-		//sprintf(filename, "./%d.jpg", t);
-		//FILE* fp = fopen(filename, "w");
-		//fwrite(jpeg, jpeg_len, 1, fp);
-		//fflush(fp);
-		//fclose(fp);
+		jpeg_len = thermometry_get_temp_and_jpeg(t - 2, t + 2, &temp, jpeg, sizeof(jpeg));
 
 
 
+		SZY_LOG("main() get info - %lf'C - jpeg size %d", temp, jpeg_len);
 
-		//if (i == 10)
-		//{
-		//	thermometry_reset_link();
-		//}
+
+		char filename[256];
+		sprintf(filename, "./%d.jpg", t);
+		FILE* fp = fopen(filename, "w");
+		fwrite(jpeg, jpeg_len, 1, fp);
+		fflush(fp);
+		fclose(fp);
+
+
+
+
+		if (i == 7)
+		{
+			thermometry_reset_link();
+		}
 
 
 
