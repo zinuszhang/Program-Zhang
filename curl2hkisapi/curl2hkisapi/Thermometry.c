@@ -156,7 +156,6 @@ struct body_analysis
 {
 	int content_type;				//	0 unknown; 1 application/xml; 2 image/pjpeg;
 	int content_len;
-	int content_len_valid_left;
 	uint8_t content_image[256 * 1024];
 	int content_image_size;
 };
@@ -331,7 +330,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 	{
 		if (body_anls->content_type == 0)
 		{
-			if (strncmp(p, "--boun", 6) == 0)
+			if (strncmp(p, "--boundary", 10) == 0)
 			{
 				//	--boun : XML / JPEG
 
@@ -357,11 +356,13 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 					p += 88 + cal_int_len(body_anls->content_len) + 4;
 
-					SZY_LOG("解析到 JPEG 数据 content len %d", body_anls->content_len);
+					//SZY_LOG("解析到 JPEG 数据 content len %d", body_anls->content_len);
 				}
 				else
 				{
 					//	异常 不处理
+
+					SZY_LOG("解析到 异常数据 ============\r\n%s", p);
 
 					break;
 				}
@@ -369,6 +370,8 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 			else
 			{
 				//	异常 不处理
+
+				SZY_LOG("解析不到 字段 --boundary ============\r\n%s", p);
 
 				break;
 			}
@@ -385,15 +388,49 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 			{
 				if (strncmp(eventType, "videoloss", 9) == 0)
 				{
-					SZY_LOG("解析到 videoloss 心跳");
+					//SZY_LOG("解析到 videoloss 心跳");
 				}
 				else if (strncmp(eventType, "TMPA", 4) == 0)
 				{
-					SZY_LOG("解析到 TMPA 温度 warning");
+					//SZY_LOG("解析到 TMPA 温度 warning");
+
+					const char* currTemperature = xml_attr_get(p, body_anls->content_len, "currTemperature");
+					const char* detectionPicturesNumber = xml_attr_get(p, body_anls->content_len, "detectionPicturesNumber");
+
+					double temp = 0;	sscanf(currTemperature, "%lf", &temp);
+					int pic_num = 1;	sscanf(detectionPicturesNumber, "%d", &pic_num);
+
+					if (pthread_mutex_lock(&g_mux_temp) == 0)
+					{
+						g_temp_timestamp = time(NULL) + 28800;
+						g_temp_type = 1;
+						g_temp = temp;
+
+						pthread_mutex_unlock(&g_mux_temp);
+
+						SZY_LOG("更新 温度 warning - 时间 %ld 温度 %lf", g_temp_timestamp, g_temp);
+					}
 				}
 				else if (strncmp(eventType, "TMA", 3) == 0)
 				{
-					SZY_LOG("解析到 TMA 温度 alarm");
+					//SZY_LOG("解析到 TMA 温度 alarm");
+
+					const char* currTemperature = xml_attr_get(p, body_anls->content_len, "currTemperature");
+					const char* detectionPicturesNumber = xml_attr_get(p, body_anls->content_len, "detectionPicturesNumber");
+
+					double temp = 0;	sscanf(currTemperature, "%lf", &temp);
+					int pic_num = 1;	sscanf(detectionPicturesNumber, "%d", &pic_num);
+
+					if (pthread_mutex_lock(&g_mux_temp) == 0)
+					{
+						g_temp_timestamp = time(NULL) + 28800;
+						g_temp_type = 2;
+						g_temp = temp;
+
+						pthread_mutex_unlock(&g_mux_temp);
+
+						SZY_LOG("更新 温度 alarm - 时间 %ld 温度 %lf", g_temp_timestamp, g_temp);
+					}
 				}
 				else
 				{
