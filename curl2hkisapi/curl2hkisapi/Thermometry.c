@@ -218,6 +218,8 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 		return 0;
 	}
 
+	SZY_LOG("recv body => %s", (char*)ptr);
+
 	if (body_anls->content_type == 0)
 	{
 		if (strncmp(ptr, "--boundary", 10) == 0)
@@ -230,7 +232,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 			{
 				body_anls->content_type = 1;
 
-				SZY_LOG("接收到 application/xml 数据 %s", ptr);
+				SZY_LOG("接收到 application/xml 数据 %s", (char *)ptr);
 			}
 			else if (strnstr(p + 10, "image/pjpeg", 11) != NULL)
 			{
