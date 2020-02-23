@@ -325,8 +325,17 @@ static void hk_isapi_access(const char* url)
 		res_code = curl_easy_setopt(http_get, CURLOPT_HEADERDATA, &g_http_get_header);
 
 		memset(&g_http_get_body, 0, sizeof(g_http_get_body));
-		//res_code = curl_easy_setopt(http_get, CURLOPT_WRITEFUNCTION, curl_buff_write);
-		//res_code = curl_easy_setopt(http_get, CURLOPT_WRITEDATA, &g_http_get_body);
+		res_code = curl_easy_setopt(http_get, CURLOPT_WRITEFUNCTION, curl_buff_write);
+		res_code = curl_easy_setopt(http_get, CURLOPT_WRITEDATA, &g_http_get_body);
+
+		/* enable TCP keep-alive for this transfer */
+		res_code = curl_easy_setopt(http_get, CURLOPT_TCP_KEEPALIVE, 1L);
+		/* keep-alive idle time to x seconds */
+		res_code = curl_easy_setopt(http_get, CURLOPT_TCP_KEEPIDLE, 10L);
+		/* interval time between keep-alive probes: x seconds */
+		res_code = curl_easy_setopt(http_get, CURLOPT_TCP_KEEPINTVL, 10L);
+
+		res_code = curl_easy_setopt(http_get, CURLOPT_TIMEOUT, 0);	//	NO timeout
 
 		res_code = curl_easy_perform(http_get);
 
