@@ -324,7 +324,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 					p += 76 + cal_int_len(body_anls->content_len) + 4;
 
-					SZY_LOG("解析到 XML 数据 content len %d", body_anls->content_len);
+					//SZY_LOG("解析到 XML 数据 content len %d", body_anls->content_len);
 				}
 				else if (strncmp(p + 66, "jpeg", 4) == 0)
 				{
@@ -352,16 +352,44 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 				break;
 			}
 		}
+		else if (body_anls->content_type == 1)
+		{
+			//	XML => <Event : videoloss / temp
+
+			body_anls->content_type = 0;
+
+			p += body_anls->content_len;
+
+			if (strncmp(p + 340, "videoloss", 9) == 0)
+			{
+				SZY_LOG("解析到 videoloss 心跳");
+			}
+			else if (strncmp(p + 340, "TMPA", 4) == 0)
+			{
+				SZY_LOG("解析到 TMPA 温度 warning");
+			}
+			else if (strncmp(p + 340, "TMA", 3) == 0)
+			{
+				SZY_LOG("解析到 TMA 温度 alarm");
+			}
+			else
+			{
+				//	异常 不处理
+
+				break;
+			}
+		}
+		else if (body_anls->content_type == 2)
+		{
+			//	JPEG => {binary}
+
+			body_anls->content_type = 0;
+
+			break;
+		}
 		else
 		{
-			//if (strncmp(p, "<Event", 6) == 0)
-			//{
-			//	//	<Event : videoloss / temp
-			//}
-			//else
-			//{
-			//	//	{binary}
-			//}
+			//	异常 不处理
 
 			break;
 		}
