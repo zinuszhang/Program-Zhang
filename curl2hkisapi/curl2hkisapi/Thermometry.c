@@ -254,7 +254,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 		{
 		BOUNDARY:
 
-			//SZY_LOG("recv body => %s", (char*)ptr);
+			SZY_LOG("recv body => %s", (char*)ptr);
 
 			p = ptr;
 

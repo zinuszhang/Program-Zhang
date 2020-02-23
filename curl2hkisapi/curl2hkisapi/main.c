@@ -413,9 +413,9 @@ int main(void)
 	{
 		time_t t = time(NULL) + 28800;
 		char jpeg[256 * 1024];
-		int jpeg_len;
+		int jpeg_len = 0;
 
-		double temp;
+		double temp = 0;
 
 		jpeg_len = thermometry_get_temp_and_jpeg(t - 2, t + 2, &temp, jpeg, sizeof(jpeg));
 
@@ -434,10 +434,10 @@ int main(void)
 
 
 
-		if (i == 10)
-		{
-			thermometry_reset_link();
-		}
+		//if (i == 10)
+		//{
+		//	thermometry_reset_link();
+		//}
 
 
 
