@@ -11,7 +11,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-#define DBG_IMAGE_CONTENT			0
+#define DBG_IMAGE_CONTENT			1
 
 #if DBG_IMAGE_CONTENT
 static FILE* g_pf_dbg_image_content = NULL;
@@ -341,6 +341,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 #if DBG_IMAGE_CONTENT
 				fwrite(body_anls->content_image, body_anls->content_image_size, 1, g_pf_dbg_image_content);
+				fflush(g_pf_dbg_image_content);
 #endif
 
 				if (pthread_mutex_lock(&g_mux_jpeg) == 0)
