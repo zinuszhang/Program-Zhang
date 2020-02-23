@@ -11,7 +11,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-#define DBG_IMAGE_CONTENT			1
+#define DBG_IMAGE_CONTENT			0
 
 #if DBG_IMAGE_CONTENT
 static FILE* g_pf_dbg_image_content = NULL;
@@ -92,6 +92,8 @@ void get_dev_bind_info(struct dev_bind_info* info)
 		（说明：照片很大，需要多个 boundary 才能传输完成）
 
 		（说明：curl 多次回调，boundary 和 image/pjpeg 一同回调）
+
+		（说明：image 中的 Content-Length 不含 \r\n ）
 
 		--boundary
 		Content-Disposition: form-data;
@@ -383,7 +385,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 						memcpy(&g_jpeg[g_jpeg_size], p, content_len);
 
 						g_jpeg_size += content_len;
-						p += content_len;
+						p += content_len + 2;	//	content len 不包含 \r\n
 
 						SZY_LOG("image content cur size %d", g_jpeg_size);
 						SZY_LOG("image content cur --boundary start addr = %p", p);
