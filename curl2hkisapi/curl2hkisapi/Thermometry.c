@@ -254,7 +254,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 		{
 		BOUNDARY:
 
-			SZY_LOG("recv body => %s", (char*)ptr);
+			//SZY_LOG("recv body => %s", (char*)ptr);
 
 			p = ptr;
 
@@ -361,7 +361,7 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 			{
 				//	图片已接收完毕
 
-				//SZY_LOG("图片已接收完毕 长度 %d", body_anls->content_image_size);
+				SZY_LOG("图片已接收完毕 长度 %d", body_anls->content_image_size);
 
 #if DBG_IMAGE_CONTENT
 				fwrite(body_anls->content_image, body_anls->content_image_size, 1, g_pf_dbg_image_content);
