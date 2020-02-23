@@ -233,6 +233,27 @@ static int cal_int_len(int n)
 	return 10;
 }
 
+static const char* xml_attr_get(const char* s_xml, size_t size, const char* attr)
+{
+	int attr_len = strlen(attr);
+
+	if (size >= attr_len * 2 + 5)
+	{
+		for (int i = 0; i <= size - (attr_len * 2 + 5); i++)
+		{
+			if (s_xml[i] == '<' && s_xml[i + 1] != '/')
+			{
+				if (strncmp(&s_xml[i + 1], attr, attr_len) == 0)
+				{
+					return &s_xml[i + 1 + attr_len + 1];
+				}
+			}
+		}
+	}
+
+	return NULL;
+}
+
 static size_t curl_write_head(void* ptr, size_t size, size_t nmemb, void* stream)
 {
 	struct head_analysis* head_anls = stream;
@@ -358,26 +379,41 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 			body_anls->content_type = 0;
 
-			p += body_anls->content_len;
+			const char* eventType = xml_attr_get(p, body_anls->content_len, "eventType");
 
-			if (strncmp(p + 340, "videoloss", 9) == 0)
+			if (eventType != NULL)
 			{
-				SZY_LOG("解析到 videoloss 心跳");
-			}
-			else if (strncmp(p + 340, "TMPA", 4) == 0)
-			{
-				SZY_LOG("解析到 TMPA 温度 warning");
-			}
-			else if (strncmp(p + 340, "TMA", 3) == 0)
-			{
-				SZY_LOG("解析到 TMA 温度 alarm");
-			}
+				if (strncmp(eventType, "videoloss", 9) == 0)
+				{
+					SZY_LOG("解析到 videoloss 心跳");
+				}
+				else if (strncmp(eventType, "TMPA", 4) == 0)
+				{
+					SZY_LOG("解析到 TMPA 温度 warning");
+				}
+				else if (strncmp(eventType, "TMA", 3) == 0)
+				{
+					SZY_LOG("解析到 TMA 温度 alarm");
+				}
+				else
+				{
+					//	异常 不处理
+
+					SZY_LOG("解析到 异常数据 ============\r\n%s", p);
+
+					break;
+				}
+			} 
 			else
 			{
 				//	异常 不处理
 
+				SZY_LOG("解析不到 字段 eventType ============\r\n%s", p);
+
 				break;
 			}
+
+			p += body_anls->content_len;
 		}
 		else if (body_anls->content_type == 2)
 		{
