@@ -302,7 +302,7 @@ int main(void)
 	return 0;
 }
 
-#elif 1
+#elif 0
 
 static void hk_isapi_access(const char* url)
 {
