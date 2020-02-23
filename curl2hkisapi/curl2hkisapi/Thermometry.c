@@ -11,7 +11,11 @@
 
 //////////////////////////////////////////////////////////////////////////
 
+#define DBG_IMAGE_CONTENT			1
 
+#if DBG_IMAGE_CONTENT
+static FILE* g_pf_dbg_image_content = NULL;
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
@@ -335,6 +339,10 @@ static size_t curl_write_body(void* ptr, size_t size, size_t nmemb, void* stream
 
 				SZY_LOG("图片已接收完毕 长度 %d", body_anls->content_image_size);
 
+#if DBG_IMAGE_CONTENT
+				fwrite(body_anls->content_image, body_anls->content_image_size, 1, g_pf_dbg_image_content);
+#endif
+
 				if (pthread_mutex_lock(&g_mux_jpeg) == 0)
 				{
 					g_jpeg_timestamp = time(NULL) + 28800;
@@ -480,6 +488,12 @@ static void* thd_isapi_2_ds2tb213avf(void* arg)
 
 void thermometry_init(void)
 {
+#if DBG_IMAGE_CONTENT
+	g_pf_dbg_image_content = fopen("./dbg_image_content.cache", "w");
+#endif
+
+	//////////////////////////////////////////////////////////////////////////
+
 	pthread_t tid;
 
 	int rcode = pthread_create(&tid, NULL, thd_isapi_2_ds2tb213avf, NULL);
