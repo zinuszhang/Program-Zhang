@@ -421,6 +421,8 @@ int main(void)
 
 
 
+		SZY_LOG("main() get info - %lf'C - jpeg size %d", temp, jpeg_len);
+
 
 		//char filename[256];
 		//sprintf(filename, "./%d.jpg", t);
